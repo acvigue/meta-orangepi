@@ -23,6 +23,7 @@
 
 	chosen: chosen {
 		stdout-path = "serial2:1500000n8";
+		bootargs = "console=ttyS2,1500000n8";
 	};
 
 	fan: pwm-fan {
@@ -879,7 +880,9 @@
 
 /* (debug) uart2 has connectors near the usb-c power, but also on the 40-pin pins 6 (tx) and 8 (rx) - don't wire both */
 &uart2 {
-	status = "disabled";
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart2m0_xfer>;
 };
 
 /*
