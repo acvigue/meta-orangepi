@@ -1,4 +1,4 @@
-//  SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
  * Copyright (c) 2020 Rockchip Electronics Co., Ltd.
  *
@@ -12,8 +12,8 @@
 #include "rk3566.dtsi"
 
 / {
-	model = "Rockchip RK3566 CM4";
-	compatible = "rockchip,rk3566-orangepi-CM4", "rockchip,rk3566";
+	model = "Rockchip RK3566 Orange Pi CM4 Board";
+	compatible = "rockchip,rk3566-orangepi-cm4", "rockchip,rk3566";
 
 	aliases {
 		ethernet0 = &gmac1;
@@ -23,7 +23,6 @@
 
 	chosen: chosen {
 		stdout-path = "serial2:1500000n8";
-		bootargs = "console=ttyS2,1500000n8";
 	};
 
 	fan: pwm-fan {
@@ -100,29 +99,6 @@
 		sprd,name = "ttyBT";
 	};
 
-	wireless_wlan: wireless-wlan {
-		compatible = "wlan-platdata";
-		rockchip,grf = <&grf>;
-		wifi_chip_type = "ap6256";
-		WIFI,host_wake_irq = <&gpio0 RK_PD6 GPIO_ACTIVE_HIGH>;
-		status = "okay";
-	};
-
-	wireless_bluetooth: wireless-bluetooth {
-		compatible = "bluetooth-platdata";
-		clocks = <&rk809 1>;
-		clock-names = "ext_clock";
-		uart_rts_gpios = <&gpio2 RK_PB5 GPIO_ACTIVE_LOW>;
-		pinctrl-names = "default", "rts_gpio";
-		pinctrl-0 = <&uart1m0_rtsn>;
-		pinctrl-1 = <&uart1_gpios>;
-		BT,reset_gpio    = <&gpio2 RK_PB7 GPIO_ACTIVE_HIGH>;
-		BT,wake_gpio     = <&gpio2 RK_PC1 GPIO_ACTIVE_HIGH>;
-		BT,wake_host_irq = <&gpio2 RK_PC0 GPIO_ACTIVE_HIGH>;
-		status = "okay";
-	};
-  
-
 	/* labeled +12v in schematic */
 	vcc12v_dcin: vcc12v-dcin-regulator {
 		compatible = "regulator-fixed";
@@ -159,10 +135,6 @@
 		regulator-name = "vcc3v3_pcie";
 		regulator-always-on;
 		regulator-boot-on;
-		enable-active-high;
-		gpio = <&gpio0 RK_PB7 GPIO_ACTIVE_HIGH>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pcie_drv>;
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
 		vin-supply = <&vcc12v_dcin>;
@@ -206,14 +178,13 @@
 		vin-supply = <&vcc3v3_sys>;
 	};
 
-	vcc5v0_host: vcc5v0-host-regulator {
+	vccio_phy: vcc-phy-regulator {
 		compatible = "regulator-fixed";
-		enable-active-high;
-		gpio = <&gpio0 RK_PA6 GPIO_ACTIVE_HIGH>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&vcc5v0_host_en>;
-		regulator-name = "vcc5v0_host";
+		regulator-max-microvolt = <1800000>;
+		regulator-min-microvolt = <1800000>;
+		regulator-name = "vccio_phy";
 		regulator-always-on;
+		regulator-boot-on;
 	};
 
 	vcc5v0_otg: vcc5v0-otg-regulator {
@@ -265,7 +236,7 @@
 		     &gmac1m0_clkinout
 		     &gmac1m0_rgmii_bus>;
 
-	snps,reset-gpio = <&gpio3 RK_PC2 GPIO_ACTIVE_LOW>;
+	snps,reset-gpio = <&gpio4 RK_PC4 GPIO_ACTIVE_LOW>;
 	snps,reset-active-low;
 	/* Reset time is 20ms, 100ms for rtl8211f */
 	//snps,reset-delays-us = <0 20000 100000>;
@@ -273,12 +244,12 @@
 	tx_delay = <0x30>;
 	rx_delay = <0x10>;
 	phy-handle = <&rgmii_phy0>;
-	status = "disabled";
+	status = "okay";
 };
 
 &gpu {
 	mali-supply = <&vdd_gpu>;
-	status = "okay";
+	status = "disabled";
 };
 
 &hdmi {
@@ -575,13 +546,27 @@
 	};
 };
 
+&spi3 {
+	status = "disabled";
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi3m0_cs1 &spi3m0_pins>;
+
+	spi_dev@0 {
+		compatible = "armbian,spi-dev";
+		reg = <0>;
+		spi-max-frequency = <50000000>;
+	};
+};
+
 /*
  * i2c3_m0 is exposed on the 40-pin (green connectors)
  * pin 27 - i2c3_sda_m0
  * pin 28 - i2c3_scl_m0
  */
+
+
 &i2c3 {
-	status = "disabled";
+	status = "okay";
 };
 
 &i2c2 {
@@ -593,17 +578,8 @@
 	status = "disabled";
 };
 
-
-&pwm7 {
-	status = "okay";
-};
-
 &i2s0_8ch {
 	status = "okay";
-};
-
-&i2s1_8ch {
-        status = "disabled";
 };
 
 &i2s1_8ch {
@@ -613,44 +589,8 @@
 		     &i2s1m0_sdi0
 		     &i2s1m0_sdo0>;
 	rockchip,trcm-sync-tx-only;
-	status = "disabled";
+	status = "okay";
 };
-
-
-&pinctrl {
-
-        qca7000_irq_gpio: qca7000_irq_gpio {
-                        rockchip,pins = <4 0 RK_FUNC_GPIO &pcfg_pull_none>;
-          };
-};
-
-&spi2 {status = "disabled";};
-
-&spi3 {
-
-	pinctrl-names = "default";
-	pinctrl-0 = <&spi3m0_cs0 &spi3m0_pins>;
-	status = "okay"; 
-
-		eth1: qca7000@1 {
-			compatible = "qca,qca7000";
-			reg=<1>;
-			pinctrl-names = "default";
-			pinctrl-0 = <&qca7000_irq_gpio>;
-			interrupt-parent = <&gpio4>;
-			interrupts = <0 0x1>; /* RK_PA0 */
-			spi-cpha;
-			spi-cpol;
-			spi-max-frequency=<8000000>;
-			status = "okay";
-	
-	};
-
-};
-
-
-
-
 
 &mdio1 {
 	rgmii_phy0: phy@0 {
@@ -658,19 +598,26 @@
 		reg = <0x0>;
 	};
 };
-/*
+
 &pcie2x1 {
 	reset-gpios = <&gpio0 RK_PB6 GPIO_ACTIVE_HIGH>;
 	vpcie3v3-supply = <&vcc3v3_pcie>;
 	status = "okay";
 };
 
-*/
-
 &pinctrl {
-	wireless-bluetooth {
-		uart1_gpios: uart1-gpios {
-			rockchip,pins = <2 RK_PB5 RK_FUNC_GPIO &pcfg_pull_none>;
+
+	bt {
+		bt_reset_h: bt-reset-h {
+			rockchip,pins = <2 RK_PB7 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		bt_host_wake_l: bt-host-wake-l {
+			rockchip,pins = <2 RK_PC0 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+
+		bt_wake_l: bt-wake-l {
+			rockchip,pins = <2 RK_PC1 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
@@ -733,6 +680,7 @@
 		};
 	};
 
+
 	work-led {
 		leds_gpio: leds-gpio {
 			rockchip,pins = <0 RK_PC0 RK_FUNC_GPIO &pcfg_pull_none>;
@@ -745,23 +693,15 @@
 		};
 	};
 
-	pcie {
-		pcie_drv: pcie-drv {
-			rockchip,pins =
-				<0 RK_PB7 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
-
 	edp {
 	        edp_hpd: edp-hpd {
-	                rockchip,pins = <0 RK_PA0 RK_FUNC_GPIO &pcfg_pull_none>;
+	                rockchip,pins = <0 RK_PA5 RK_FUNC_GPIO &pcfg_pull_none>;
 	        };
 
 	        bl_en: bl-en {
-	                rockchip,pins = <0 RK_PB5 RK_FUNC_GPIO &pcfg_output_high>;
+	                rockchip,pins = <0 RK_PB0 RK_FUNC_GPIO &pcfg_output_high>;
 	        };
 	};
-
 };
 
  /*
@@ -789,12 +729,14 @@
 	vccio2-supply = <&vcc_1v8>;
         vccio3-supply = <&vccio_sd>;
         vccio4-supply = <&vcc_1v8>;
-        vccio5-supply = <&vcc_3v3>;
+        vccio5-supply = <&vccio_phy>;
         vccio6-supply = <&vcc_3v3>;
         vccio7-supply = <&vcc_3v3>;
 };
-/*
 
+&pwm7 {
+	status = "okay";
+};
 
 &pwm11 {
 	pinctrl-0 = <&pwm11m1_pins>;
@@ -811,7 +753,6 @@
 	vref-supply = <&vcca_1v8>;
 };
 
-
 &sdhci {
 	bus-width = <8>;
 	max-frequency = <200000000>;
@@ -820,7 +761,6 @@
 	pinctrl-0 = <&emmc_bus8 &emmc_clk &emmc_cmd>;
 	status = "okay";
 };
-
 
 &sdmmc0 {
 	max-frequency = <150000000>;
@@ -864,32 +804,40 @@
 	};
 };
 
-
-
 &tsadc {
 	status = "okay";
 };
-
 
 &uart1 {
 	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&uart1m0_xfer &uart1m0_ctsn &uart1m0_rtsn>;
 	uart-has-rtscts;
-};
 
+	bluetooth {
+		compatible = "brcm,bcm4345c5";
+		clocks = <&rk809 1>;
+		clock-names = "lpo";
+		device-wakeup-gpios = <&gpio2 RK_PC1 GPIO_ACTIVE_HIGH>;
+		host-wakeup-gpios = <&gpio2 RK_PC0 GPIO_ACTIVE_HIGH>;
+		shutdown-gpios = <&gpio2 RK_PB7 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&bt_host_wake_l &bt_wake_l &bt_reset_h>;
+	};
+};
 /* (debug) uart2 has connectors near the usb-c power, but also on the 40-pin pins 6 (tx) and 8 (rx) - don't wire both */
 &uart2 {
 	status = "okay";
-	pinctrl-names = "default";
-	pinctrl-0 = <&uart2m0_xfer>;
 };
 
-/*
 &uart3 {
 	status = "disabled";
 };
 
+&uart7 {
+	pinctrl-0 = <&uart7m2_xfer>;
+	status = "disabled";
+};
 
 &uart9 {
     pinctrl-0 = <&uart9m2_xfer>;
@@ -946,7 +894,6 @@
 &usb_host1_xhci {
 	status = "okay";
 };
-*/
 
 &vop {
 	assigned-clocks = <&cru DCLK_VOP0>, <&cru DCLK_VOP1>;
